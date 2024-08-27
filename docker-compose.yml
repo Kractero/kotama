@@ -1,0 +1,27 @@
+services:
+  queries:
+    build:
+      context: .
+    container_name: queries
+    volumes:
+      - ./cards.db:/app/cards.db
+      - ./app.log:/app/app.log
+    environment:
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+    restart: always
+    networks:
+      - caddy
+  queriescache:
+    restart: always
+    image: redis:alpine
+    container_name: queriescache
+    volumes:
+      - queriescache:/data
+    networks:
+      - caddy
+volumes:
+  queriescache: null
+networks:
+  caddy:
+    external: true
