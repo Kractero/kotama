@@ -2,9 +2,9 @@ name: Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
 
 jobs:
   build:
@@ -21,6 +21,6 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd docker/kotama
-            git pull origin main
+            git pull origin master
             git status
             docker compose up -d --build
