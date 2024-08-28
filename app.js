@@ -99,7 +99,7 @@ app.get('/api', limiter, async (req, res) => {
 				query += ` ${clause.qualifier}`;
 
 				if (clause.whereValue === 'exnation') {
-					query += ` REGION ${clause.input === 'true' ? 'IS' : 'IS NOT'} NULL`;
+					query += ` REGION ${clause.input === 'TRUE' ? 'IS' : 'IS NOT'} NULL`;
 				} else {
 					if (['badges', 'trophies'].includes(clause.whereValue)) {
 						if (clause.whereValue === 'badges') {
