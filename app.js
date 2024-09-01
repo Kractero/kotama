@@ -78,27 +78,31 @@ app.get('/api', limiter, async (req, res) => {
     if (req.query.from && ['S1', 'S2', 'S3'].includes(req.query.from)) query += ` FROM ${req.query.from} WHERE`
     else query += ` FROM S3 WHERE`
     const clauseBuilder = req.query.clauses
-      ? req.query.clauses.split(',').map(clause => {
-          const clauser = clause.split('-')
-          if (clauser[3] === 'rare') {
-            clauser[2] = 'ultra-rare'
-            clauser.pop()
-          }
-          return {
-            qualifier: 'AND',
-            whereValue: clauser[0],
-            conditionValue: clauser[1],
-            badgeTrophyValue: '',
-            input: clauser[2],
-            trophyPercentage: clauser[3] ? clauser[3] : '',
-          }
-        })
+      ? req.query.clauses
+          .split(',')
+          .map(clause => {
+            const clauser = clause.split('-')
+            if (clauser[3] === 'rare') {
+              clauser[2] = 'ultra-rare'
+              clauser.pop()
+            }
+            return {
+              qualifier: 'AND',
+              whereValue: clauser[0],
+              conditionValue: clauser[1],
+              badgeTrophyValue: '',
+              input: clauser[2],
+              trophyPercentage: clauser[3] ? clauser[3] : '',
+            }
+          })
+          .filter(clause => clause)
       : []
+
     for (let i = 0; i < clauseBuilder.length; i++) {
       const clause = clauseBuilder[i]
-
+      if (clause.whereValue === 'status') continue
       if (clause.whereValue !== '') {
-        if (i > 0) query += ` ${clause.qualifier}`
+        if (i > 0 && !query.endsWith('WHERE')) query += ` ${clause.qualifier}`
 
         if (clause.whereValue === 'exnation') {
           query += ` REGION ${clause.input === 'TRUE' ? 'IS' : 'IS NOT'} NULL`
@@ -130,7 +134,7 @@ app.get('/api', limiter, async (req, res) => {
       }
     }
 
-    let getCardsFromDB = await getOrSetToCache(query, () => db.prepare(query).all())
+    let getCardsFromDB = await getOrSetToCache(req.query, () => db.prepare(query).all())
 
     getCardsFromDB.forEach(card => {
       if (card.badges) {
@@ -142,13 +146,26 @@ app.get('/api', limiter, async (req, res) => {
       card.cte = cardsCteStatus[String(card.id)]
     })
 
+    /* If its cached, the response will most likely already take care
+      of checking if this was a cte query, but the information could be
+      out of date, so reverify with an updated cte sheet. If this hurts
+      server resources this will be reconsidered
+    */
+    const checkCTEs = clauseBuilder.find(clause => clause.whereValue === 'status')
+
+    if (checkCTEs) {
+      getCardsFromDB = getCardsFromDB.filter(card =>
+        checkCTEs.input === 'Exists' ? card.cte === false : card.cte === true
+      )
+    }
+
     res.send(getCardsFromDB)
-  } catch (err) {
+  } catch (error) {
     logger.error(
       {
         type: 'user request',
-        params: query,
-        error: err,
+        params: req.query,
+        error: error.message,
       },
       `An error occured on the / route`
     )
