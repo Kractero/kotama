@@ -3,3 +3,5 @@ node_modules
 app.log
 cards.db
 dump.rdb
+error.log
+.direnv

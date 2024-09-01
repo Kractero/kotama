@@ -1,13 +1,13 @@
 import express from 'express'
 import cors from 'cors'
-import { trophies } from './trophies.js'
+import { trophies } from './util/trophies.js'
 import { rateLimit } from 'express-rate-limit'
 import compression from 'compression'
-import { getOrSetToCache } from './getOrSetToCache.js'
-import { logger } from './logger.js'
+import { getOrSetToCache } from './util/getOrSetToCache.js'
+import { logger } from './util/logger.js'
 import 'dotenv/config.js'
 import { schedule } from 'node-cron'
-import { getDatabase } from './db.js'
+import { getDatabase } from './util/db.js'
 
 const port = process.env.PORT || 3000
 
@@ -39,8 +39,20 @@ async function loadCardsCteStatus() {
     }
     const json = await response.json()
     cardsCteStatus = json
-    logger.info(`Successfully updated cte statuses for ${date}`)
+    logger.info(
+      {
+        type: 'system',
+      },
+      `Successfully updated cte statuses for ${date}`
+    )
   } catch (error) {
+    logger.error(
+      {
+        type: 'system',
+        error: err,
+      },
+      `An error occured while fetching the latest CTE status`
+    )
     logger.error({ error: error.message }, 'Failed to fetch or update cards CTE status')
   }
 }
@@ -134,27 +146,44 @@ app.get('/api', limiter, async (req, res) => {
   } catch (err) {
     logger.error(
       {
-        params: req.query,
+        type: 'user request',
+        params: query,
+        error: err,
       },
-      `An error occured on the / route: ${err}`
+      `An error occured on the / route`
     )
   }
 })
 
-app.get('/health', async (req, res) => {
+app.get('/health', limiter, async (req, res) => {
   res.status(200).send()
 })
 
 app.listen(port, () => {
-  logger.info(`App started and listening on ${port}`)
+  logger.info(
+    {
+      type: 'system',
+    },
+    `App started and listening on ${port}`
+  )
 })
 
 process.on('SIGINT', () => {
-  logger.info('SIGINT signal received: closing database connection.')
+  logger.info(
+    {
+      type: 'system',
+    },
+    'SIGINT signal received: closing database connection.'
+  )
   const db = getDatabase()
   if (db) {
     db.close()
-    logger.info('Database connection closed.')
+    logger.info(
+      {
+        type: 'system',
+      },
+      'Database connection closed.'
+    )
   }
   process.exit(0)
 })
