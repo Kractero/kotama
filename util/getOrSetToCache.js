@@ -2,13 +2,22 @@ import { logger } from './logger.js'
 import { RedisClient } from './redis.js'
 
 export async function getOrSetToCache(key, callback) {
-  const data = await RedisClient.get(key)
+  const selectPart = `select=${key.select}`
+  const fromPart = `from=${key.from}`
+
+  const sortedClauses = key.clauses.split(',').sort().join(',')
+
+  const clausesPart = `clauses=${sortedClauses}`
+
+  const cacheKey = `${selectPart}&${fromPart}&${clausesPart}`
+
+  const data = await RedisClient.get(cacheKey)
   if (data) {
     logger.info(
       {
         type: 'user request',
         status: 'hit',
-        query: key,
+        query: cacheKey,
       },
       'Redis cache hit'
     )
@@ -16,13 +25,13 @@ export async function getOrSetToCache(key, callback) {
   }
   const queryResult = await callback()
   if (queryResult) {
-    RedisClient.set(key, JSON.stringify(queryResult))
-    RedisClient.expire(key, 600)
+    RedisClient.set(cacheKey, JSON.stringify(queryResult))
+    RedisClient.expire(cacheKey, 600)
     logger.info(
       {
         type: 'user request',
         status: 'missed',
-        query: key,
+        query: cacheKey,
       },
       'Redis cache missed'
     )
