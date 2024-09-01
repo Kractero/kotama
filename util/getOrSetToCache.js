@@ -1,7 +1,7 @@
 import { logger } from './logger.js'
 import { RedisClient } from './redis.js'
 
-export async function getOrSetToCache(key, callback) {
+export async function getOrSetToCache(key, callback, origin) {
   const selectPart = `select=${key.select}`
   const fromPart = `from=${key.from}`
 
@@ -18,6 +18,7 @@ export async function getOrSetToCache(key, callback) {
         type: 'user request',
         status: 'hit',
         query: cacheKey,
+        origin: origin === 'frontend' ? 'frontend' : 'api',
       },
       'Redis cache hit'
     )
@@ -32,6 +33,7 @@ export async function getOrSetToCache(key, callback) {
         type: 'user request',
         status: 'missed',
         query: cacheKey,
+        origin: origin === 'frontend' ? 'frontend' : 'api',
       },
       'Redis cache missed'
     )

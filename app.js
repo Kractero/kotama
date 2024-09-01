@@ -68,6 +68,7 @@ app.use(compression())
 
 app.get('/api', limiter, async (req, res) => {
   try {
+    const origin = req.headers['x-origin']
     const db = getDatabase()
     let query = ''
     if (req.query.select && ['all', 'min'].includes(req.query.select)) {
@@ -134,7 +135,7 @@ app.get('/api', limiter, async (req, res) => {
       }
     }
 
-    let getCardsFromDB = await getOrSetToCache(req.query, () => db.prepare(query).all())
+    let getCardsFromDB = await getOrSetToCache(req.query, () => db.prepare(query).all(), origin)
 
     getCardsFromDB.forEach(card => {
       if (card.badges) {
@@ -161,11 +162,14 @@ app.get('/api', limiter, async (req, res) => {
 
     res.send(getCardsFromDB)
   } catch (error) {
+    const origin = req.headers['x-origin']
+
     logger.error(
       {
         type: 'user request',
         params: req.query,
         error: error.message,
+        origin: origin === 'frontend' ? 'frontend' : 'api',
       },
       `An error occured on the / route`
     )
