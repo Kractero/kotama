@@ -30,9 +30,7 @@ async function loadCardsCteStatus() {
   const date = utcMinus7Date.toISOString().slice(0, 10)
 
   try {
-    const response = await fetch(
-      `https://raw.githubusercontent.com/Kractero/region-xml-dump/main/data/${date}-cards.json`
-    )
+    const response = await fetch(`https://raw.githubusercontent.com/Kractero/himari/main/data/${date}-cards.json`)
     if (!response.ok) {
       logger.error({ status: response.status, statusText: response.statusText }, 'Failed to update cards CTE status')
       return
