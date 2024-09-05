@@ -3,7 +3,7 @@ import cors from 'cors'
 import { trophies } from './util/trophies.js'
 import { rateLimit } from 'express-rate-limit'
 import compression from 'compression'
-import { getOrSetToCache } from './util/getOrSetToCache.js'
+import { getOrSetToCache, invalidateCache } from './util/getOrSetToCache.js'
 import { logger } from './util/logger.js'
 import 'dotenv/config.js'
 import { schedule } from 'node-cron'
@@ -37,6 +37,8 @@ async function loadCardsCteStatus() {
     }
     const json = await response.json()
     cardsCteStatus = json
+
+    await invalidateCache()
     logger.info(
       {
         type: 'system',
@@ -47,7 +49,7 @@ async function loadCardsCteStatus() {
     logger.error(
       {
         type: 'system',
-        error: err,
+        error: error.message,
       },
       `An error occured while fetching the latest CTE status`
     )
@@ -170,6 +172,40 @@ app.get('/api', limiter, async (req, res) => {
         origin: origin === 'frontend' ? 'frontend' : 'api',
       },
       `An error occured on the / route`
+    )
+  }
+})
+
+app.post('/api/cte', async (req, res) => {
+  try {
+    const origin = req.headers['x-origin']
+    let cardIds = req.body
+    if (!Array.isArray(cardIds)) {
+      cardIds = [cardIds]
+    }
+
+    const fetchCteStatus = async () => {
+      const cteCards = cardIds.reduce((acc, cardId) => {
+        acc[cardId] = cardsCteStatus[String(cardId)] || false
+        return acc
+      }, {})
+      return cteCards
+    }
+
+    const cteCards = await getOrSetToCache(JSON.stringify(cardIds), fetchCteStatus, origin)
+
+    res.json(cteCards)
+  } catch (error) {
+    const origin = req.headers['x-origin']
+
+    logger.error(
+      {
+        type: 'user request',
+        params: req.query,
+        error: error.message,
+        origin: origin === 'frontend' ? 'frontend' : 'api',
+      },
+      `An error occured on the /api/cte route`
     )
   }
 })
