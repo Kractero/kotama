@@ -5,6 +5,7 @@ pkgs.mkShell
     nodejs
     npm-check-updates
     redis
+    python3
   ];
 
   shellHook = ''

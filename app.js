@@ -73,10 +73,10 @@ app.get('/api', limiter, async (req, res) => {
     let query = ''
     if (req.query.select && ['all', 'min'].includes(req.query.select)) {
       if (req.query.select === 'all') query += `SELECT *`
-      else query += `SELECT id, name, season`
+      else query += `SELECT id, name`
     } else query += `SELECT *`
 
-    if (req.query.from && ['S1', 'S2', 'S3'].includes(req.query.from)) query += ` FROM ${req.query.from} WHERE`
+    if (req.query.from && ['S1', 'S2', 'S3', 'S4'].includes(req.query.from)) query += ` FROM ${req.query.from} WHERE`
     else query += ` FROM S3 WHERE`
     const clauseBuilder = req.query.clauses
       ? req.query.clauses
