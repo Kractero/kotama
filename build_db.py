@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS {jsonl_file_path.split('_')[1].split('.')[0]} (
       category TEXT,
       region TEXT,
       flag TEXT,
+      banner TEXT,
       cardcategory TEXT,
       population INTEGER,
       description TEXT,
@@ -52,9 +53,9 @@ CREATE TABLE IF NOT EXISTS {jsonl_file_path.split('_')[1].split('.')[0]} (
       popsa = None
 
     cur.execute(f'''
-      INSERT OR IGNORE INTO {jsonl_file_path.split('_')[1].split('.')[0]} (id, name, type, motto, category, region, flag, cardcategory, population, description, badges, trophies)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ''', (json_data['ID'], json_data['NAME'], json_data['TYPE'], json_data['MOTTO'], json_data['CATEGORY'], json_data['REGION'], json_data['FLAG'], json_data['CARDCATEGORY'], popsa, json_data['DESCRIPTION'], json.dumps(json_data['BADGES']), json.dumps(json_data['TROPHIES'])))
+      INSERT OR IGNORE INTO {jsonl_file_path.split('_')[1].split('.')[0]} (id, name, type, motto, category, region, flag, banner, cardcategory, population, description, badges, trophies)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ''', (json_data['ID'], json_data['NAME'], json_data['TYPE'], json_data['MOTTO'], json_data['CATEGORY'], json_data['REGION'], json_data['FLAG'], json_data.get('BANNER'), json_data['CARDCATEGORY'], popsa, json_data['DESCRIPTION'], json.dumps(json_data['BADGES']), json.dumps(json_data['TROPHIES'])))
 
   conn.commit()
   conn.close()
