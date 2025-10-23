@@ -139,7 +139,7 @@ app.get('/api', limiter, async (req, res) => {
 
     query += ` LIMIT ${limit} OFFSET ${page * limit}`
 
-    let getCardsFromDB = await getOrSetToCache(query, () => db.prepare(query).all(), origin)
+    let getCardsFromDB = await getOrSetToCache(query, () => db.prepare(query).all(), origin, 'userQuery')
 
     getCardsFromDB.forEach(card => {
       if (card.badges) {
@@ -204,7 +204,7 @@ app.post('/api/cte', async (req, res) => {
       return cteCards
     }
 
-    const cteCards = await getOrSetToCache(JSON.stringify(cardIds), fetchCteStatus, origin)
+    const cteCards = await getOrSetToCache(JSON.stringify(cardIds), fetchCteStatus, origin, 'cteCards')
 
     res.json(cteCards)
   } catch (error) {

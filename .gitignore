@@ -1,7 +1,7 @@
 node_modules
 .env
 app.log
-cards.db
+*.db
 dump.rdb
 error.log
 .direnv
