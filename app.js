@@ -71,6 +71,8 @@ app.get('/api', limiter, async (req, res) => {
     const origin = req.headers['x-origin']
     const db = getDatabase()
     let query = ''
+    const limit = parseInt(req.query.limit) || 25
+    const page = parseInt(req.query.page - 1) || 0
     if (req.query.select && ['all', 'min'].includes(req.query.select)) {
       if (req.query.select === 'all') query += `SELECT *`
       else query += `SELECT id, name`
@@ -135,7 +137,9 @@ app.get('/api', limiter, async (req, res) => {
       }
     }
 
-    let getCardsFromDB = await getOrSetToCache(req.query, () => db.prepare(query).all(), origin)
+    query += ` LIMIT ${limit} OFFSET ${page * limit}`
+
+    let getCardsFromDB = await getOrSetToCache(query, () => db.prepare(query).all(), origin)
 
     getCardsFromDB.forEach(card => {
       if (card.badges) {
@@ -160,7 +164,15 @@ app.get('/api', limiter, async (req, res) => {
       )
     }
 
-    res.send(getCardsFromDB)
+    const countQuery = query.replace(/^SELECT .* FROM/, 'SELECT COUNT(*) as total FROM').replace(/LIMIT.*$/, '')
+    const totalCount = db.prepare(countQuery).get().total
+
+    res.send({
+      total: totalCount,
+      limit: limit,
+      page: limit * page + 1,
+      cards: getCardsFromDB,
+    })
   } catch (error) {
     const origin = req.headers['x-origin']
 
