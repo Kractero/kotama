@@ -78,8 +78,8 @@ app.get('/api', limiter, async (req, res) => {
       else query += `SELECT id, name`
     } else query += `SELECT *`
 
-    if (req.query.from && ['S1', 'S2', 'S3', 'S4'].includes(req.query.from)) query += ` FROM ${req.query.from} WHERE`
-    else query += ` FROM S3 WHERE`
+    if (req.query.from && ['S1', 'S2', 'S3', 'S4'].includes(req.query.from)) query += ` FROM ${req.query.from}`
+    else query += ` FROM S3`
     const clauseBuilder = req.query.clauses
       ? req.query.clauses
           .split(',')
@@ -100,6 +100,8 @@ app.get('/api', limiter, async (req, res) => {
           })
           .filter(clause => clause)
       : []
+
+    if (!(clauseBuilder.length === 1 && clauseBuilder[0].whereValue === 'status')) query += ' WHERE'
 
     for (let i = 0; i < clauseBuilder.length; i++) {
       const clause = clauseBuilder[i]
