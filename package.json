@@ -12,20 +12,20 @@
     "better-sqlite3": "^12.6.2",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
-    "dotenv": "^17.2.3",
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
-    "fast-xml-parser": "^5.3.4",
-    "ioredis": "^5.9.2",
+    "fast-xml-parser": "^5.3.9",
+    "ioredis": "^5.9.3",
     "node-cron": "^4.2.1",
-    "pino": "^10.3.0"
+    "pino": "^10.3.1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.14"
   },
   "overrides": {
     "better-sqlite3": {
